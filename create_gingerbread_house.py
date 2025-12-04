@@ -69,7 +69,7 @@ TAB_HEIGHT = 0.3       # inches (height of each tab)
 TAB_TOLERANCE = 0.01   # inches (clearance for fitting)
 
 
-def create_arched_opening(width, height, depth, arch_height=None):
+def create_arched_opening(width, height, depth, arch_height=None, plane="XZ"):
     """
     Create an arched opening (rectangle with semicircular top).
     
@@ -78,6 +78,8 @@ def create_arched_opening(width, height, depth, arch_height=None):
         height: Total height of the opening in mm (including arch)
         depth: Depth/thickness of the opening in mm
         arch_height: Height of the arch portion (defaults to width/2 for semicircle)
+        plane: Workplane to create the profile on ("XZ" for front/back walls, 
+               "XY" for side walls)
     
     Returns:
         cq.Workplane: The arched opening shape
@@ -92,7 +94,7 @@ def create_arched_opening(width, height, depth, arch_height=None):
     # The rectangular portion height
     rect_height = max(0, height - arch_height)
     
-    # Create the arched profile on XZ plane
+    # Create the arched profile
     # Start from bottom-left, go around the arch
     points = []
     
@@ -107,8 +109,8 @@ def create_arched_opening(width, height, depth, arch_height=None):
     for i in range(1, ARCH_SEGMENTS):
         angle = math.pi - (math.pi * i / ARCH_SEGMENTS)
         x = (width / 2) * math.cos(angle)
-        z = rect_height + arch_height * math.sin(angle)
-        points.append((x, z))
+        y_or_z = rect_height + arch_height * math.sin(angle)
+        points.append((x, y_or_z))
     
     # Top right (end of arch) - only add if there's a rectangular portion
     if rect_height > 0:
@@ -116,16 +118,21 @@ def create_arched_opening(width, height, depth, arch_height=None):
     # Bottom right
     points.append((width / 2, 0))
     
-    # Create the shape
+    # Create the shape on the specified plane
     opening = (
-        cq.Workplane("XZ")
+        cq.Workplane(plane)
         .polyline(points)
         .close()
         .extrude(depth)
     )
     
-    # Center the extrusion in Y
-    opening = opening.translate((0, -depth / 2, 0))
+    # Center the extrusion in the extrusion direction
+    if plane == "XZ":
+        # Extruded in Y direction
+        opening = opening.translate((0, -depth / 2, 0))
+    elif plane == "XY":
+        # Extruded in Z direction
+        opening = opening.translate((0, 0, -depth / 2))
     
     return opening
 
@@ -352,12 +359,14 @@ def create_side_wall():
         .extrude(thickness)
     )
     
-    # Center the extrusion in Y
-    wall = wall.translate((0, -thickness / 2, 0))
+    # Center the extrusion in Z (thickness direction)
+    wall = wall.translate((0, 0, -thickness / 2))
     
-    # Cut arched window
-    window = create_arched_opening(window_w, window_h, thickness + 1)
-    window = window.translate((0, 0, window_off))
+    # Cut arched window using XY plane (to match wall orientation)
+    # Window is created on XY plane and extruded in Z (same as wall)
+    window = create_arched_opening(window_w, window_h, thickness + 1, plane="XY")
+    # Translate window to correct Y position (height offset from bottom)
+    window = window.translate((0, window_off, 0))
     wall = wall.cut(window)
     
     # Add interlocking slots (to receive tabs from front/back walls)
