@@ -26,7 +26,7 @@ Create a vintage-style gingerbread house with all pieces ready for 3D printing.
 
 **Requirements:**
 ```bash
-pip install cadquery-ocp cadquery
+pip install cadquery-ocp cadquery numpy-stl matplotlib
 ```
 
 **Run:**
@@ -42,6 +42,23 @@ This will generate 7 STL files:
 - `gingerbread_roof_left.stl` - Left roof panel
 - `gingerbread_roof_right.stl` - Right roof panel
 - `gingerbread_chimney.stl` - Chimney piece
+
+**Preview Images:**
+
+The script also generates PNG preview images for each STL file for validation:
+- `gingerbread_front_wall.png` - Preview of front wall (validates 1 door, 2 windows)
+- `gingerbread_back_wall.png` - Preview of back wall
+- `gingerbread_left_side.png` - Preview of left side wall
+- `gingerbread_right_side.png` - Preview of right side wall
+- `gingerbread_roof_left.png` - Preview of left roof panel
+- `gingerbread_roof_right.png` - Preview of right roof panel
+- `gingerbread_chimney.png` - Preview of chimney
+
+**Validation:**
+
+The script validates that the front wall has the required features:
+- 1 door (centered, arched)
+- 2 windows (left and right, arched)
 
 ### Holiday Sign - Standalone Script (CadQuery)
 

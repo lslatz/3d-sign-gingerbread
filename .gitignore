@@ -11,6 +11,9 @@ venv/
 *.FCStd
 *.FCStd1
 
+# Generated preview images
+*.png
+
 # IDE and editor files
 .vscode/
 .idea/

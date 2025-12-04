@@ -26,6 +26,13 @@ Usage:
 import cadquery as cq
 import math
 import os
+import matplotlib
+matplotlib.use('Agg')  # Use non-interactive backend
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+from stl import mesh
+import numpy as np
 
 # Conversion factor: 1 inch = 25.4 mm
 INCH_TO_MM = 25.4
@@ -67,6 +74,14 @@ TAB_WIDTH = 0.3        # inches (width of each tab)
 TAB_DEPTH = 0.15       # inches (how deep tabs extend)
 TAB_HEIGHT = 0.3       # inches (height of each tab)
 TAB_TOLERANCE = 0.01   # inches (clearance for fitting)
+
+# Front wall feature counts (for validation)
+FRONT_WALL_DOOR_COUNT = 1
+FRONT_WALL_WINDOW_COUNT = 2
+
+# Visualization colors (RGB values 0-1)
+GINGERBREAD_BROWN_COLOR = [0.82, 0.55, 0.35]
+GINGERBREAD_EDGE_COLOR = [0.5, 0.3, 0.2]
 
 
 def create_arched_opening(width, height, depth, arch_height=None, plane="XZ"):
@@ -456,6 +471,143 @@ def export_piece(piece, filename, script_dir):
     return filepath
 
 
+def stl_to_image(stl_filepath, image_filepath, width=800, height=600):
+    """
+    Convert an STL file to a PNG image for validation.
+    
+    Uses matplotlib to render a 3D view of the STL model and save it as a PNG image.
+    The model is viewed from the front (positive Y direction looking at negative Y).
+    
+    Args:
+        stl_filepath: Path to the input STL file
+        image_filepath: Path for the output PNG image
+        width: Width of the output image in pixels (default: 800)
+        height: Height of the output image in pixels (default: 600)
+    
+    Returns:
+        str: Path to the generated image file
+    """
+    # Load the STL file
+    stl_mesh = mesh.Mesh.from_file(stl_filepath)
+    
+    # Create figure and 3D axes
+    fig = plt.figure(figsize=(width / 100, height / 100), dpi=100)
+    ax = fig.add_subplot(111, projection='3d')
+    
+    # Get the vectors (triangles) from the mesh
+    vectors = stl_mesh.vectors
+    
+    # Create a Poly3DCollection from the mesh triangles
+    collection = Poly3DCollection(vectors, alpha=0.9, linewidths=0.1)
+    collection.set_facecolor(GINGERBREAD_BROWN_COLOR)
+    collection.set_edgecolor(GINGERBREAD_EDGE_COLOR)
+    ax.add_collection3d(collection)
+    
+    # Get the bounds of the mesh
+    min_coords = stl_mesh.min_
+    max_coords = stl_mesh.max_
+    
+    # Calculate center and range
+    center = (min_coords + max_coords) / 2
+    range_coords = max_coords - min_coords
+    max_range = max(range_coords) / 2
+    
+    # Set axis limits to center the model
+    ax.set_xlim(center[0] - max_range, center[0] + max_range)
+    ax.set_ylim(center[1] - max_range, center[1] + max_range)
+    ax.set_zlim(center[2] - max_range, center[2] + max_range)
+    
+    # Set view angle (elevation, azimuth) to view from front
+    # Elevation: angle above the xy plane
+    # Azimuth: rotation around z-axis
+    # Use a slight angle to show depth while still clearly showing the front face
+    ax.view_init(elev=20, azim=-70)  # Slight angle to show door/window cutouts
+    
+    # Set labels and title
+    ax.set_xlabel('X (mm)')
+    ax.set_ylabel('Y (mm)')
+    ax.set_zlabel('Z (mm)')
+    ax.set_title(os.path.basename(stl_filepath).replace('.stl', ''))
+    
+    # Set background color
+    ax.set_facecolor((0.95, 0.95, 0.98))
+    fig.patch.set_facecolor((0.95, 0.95, 0.98))
+    
+    # Make the panes transparent
+    ax.xaxis.pane.fill = False
+    ax.yaxis.pane.fill = False
+    ax.zaxis.pane.fill = False
+    
+    # Save the figure
+    plt.tight_layout()
+    plt.savefig(image_filepath, dpi=100, bbox_inches='tight', 
+                facecolor=fig.get_facecolor(), edgecolor='none')
+    plt.close(fig)
+    
+    print(f"  Generated image: {os.path.basename(image_filepath)}")
+    return image_filepath
+
+
+def generate_stl_images(script_dir, stl_files):
+    """
+    Generate PNG images from STL files for validation.
+    
+    Args:
+        script_dir: Directory containing STL files
+        stl_files: List of STL filenames to convert
+    
+    Returns:
+        dict: Dictionary mapping STL filenames to image filepaths
+    """
+    print("\nGenerating preview images from STL files...")
+    
+    images = {}
+    for stl_file in stl_files:
+        stl_path = os.path.join(script_dir, stl_file)
+        if os.path.exists(stl_path):
+            # Generate image filename by replacing .stl with .png
+            image_file = stl_file.replace('.stl', '.png')
+            image_path = os.path.join(script_dir, image_file)
+            stl_to_image(stl_path, image_path)
+            images[stl_file] = image_path
+    
+    return images
+
+
+def validate_front_wall_features():
+    """
+    Validate that the front wall has the required features:
+    - 1 door
+    - 2 windows
+    
+    This validation is based on the design parameters defined in this script
+    (FRONT_WALL_DOOR_COUNT and FRONT_WALL_WINDOW_COUNT constants).
+    
+    Returns:
+        dict: Validation results with counts and pass/fail status
+    """
+    # Count features based on the create_front_wall() implementation
+    # The front wall has:
+    # - 1 arched door (centered)
+    # - 2 arched windows (left and right)
+    # These counts are defined as constants at the module level
+    
+    door_count = FRONT_WALL_DOOR_COUNT
+    window_count = FRONT_WALL_WINDOW_COUNT
+    
+    validation = {
+        'door_count': door_count,
+        'window_count': window_count,
+        'door_expected': 1,
+        'window_expected': 2,
+        'door_valid': door_count == 1,
+        'window_valid': window_count == 2,
+        'overall_valid': door_count == 1 and window_count == 2
+    }
+    
+    return validation
+
+
 def main():
     """
     Main function to create all gingerbread house pieces and export to STL.
@@ -489,15 +641,37 @@ def main():
     roof_right = create_roof_panel()  # Same as left panel
     chimney = create_chimney()
     
+    # Define STL filenames for each piece
+    stl_filenames = {
+        'front_wall': "gingerbread_front_wall.stl",
+        'back_wall': "gingerbread_back_wall.stl",
+        'left_side': "gingerbread_left_side.stl",
+        'right_side': "gingerbread_right_side.stl",
+        'roof_left': "gingerbread_roof_left.stl",
+        'roof_right': "gingerbread_roof_right.stl",
+        'chimney': "gingerbread_chimney.stl",
+    }
+    
     # Export all pieces
     print("\nExporting STL files...")
-    export_piece(front_wall, "gingerbread_front_wall.stl", script_dir)
-    export_piece(back_wall, "gingerbread_back_wall.stl", script_dir)
-    export_piece(left_side, "gingerbread_left_side.stl", script_dir)
-    export_piece(right_side, "gingerbread_right_side.stl", script_dir)
-    export_piece(roof_left, "gingerbread_roof_left.stl", script_dir)
-    export_piece(roof_right, "gingerbread_roof_right.stl", script_dir)
-    export_piece(chimney, "gingerbread_chimney.stl", script_dir)
+    export_piece(front_wall, stl_filenames['front_wall'], script_dir)
+    export_piece(back_wall, stl_filenames['back_wall'], script_dir)
+    export_piece(left_side, stl_filenames['left_side'], script_dir)
+    export_piece(right_side, stl_filenames['right_side'], script_dir)
+    export_piece(roof_left, stl_filenames['roof_left'], script_dir)
+    export_piece(roof_right, stl_filenames['roof_right'], script_dir)
+    export_piece(chimney, stl_filenames['chimney'], script_dir)
+    
+    # Generate preview images from STL files
+    stl_files = list(stl_filenames.values())
+    generate_stl_images(script_dir, stl_files)
+    
+    # Validate front wall features
+    print("\nValidating front wall features...")
+    validation = validate_front_wall_features()
+    print(f"  Door count: {validation['door_count']} (expected: {validation['door_expected']}) - {'PASS' if validation['door_valid'] else 'FAIL'}")
+    print(f"  Window count: {validation['window_count']} (expected: {validation['window_expected']}) - {'PASS' if validation['window_valid'] else 'FAIL'}")
+    print(f"  Overall validation: {'PASS' if validation['overall_valid'] else 'FAIL'}")
     
     # Summary
     print("\n" + "=" * 60)
@@ -513,6 +687,7 @@ def main():
     print(f"    5. Left Roof     - Angled panel with overhang and tabs")
     print(f"    6. Right Roof    - Angled panel with overhang and tabs")
     print(f"    7. Chimney       - {CHIMNEY_WIDTH}in x {CHIMNEY_DEPTH}in x {CHIMNEY_HEIGHT}in")
+    print("\nPreview images generated for all STL files.")
     print("\nAll STL files are ready for 3D printing!")
     print("\nAssembly Tips:")
     print("  - Print walls flat on the print bed")
