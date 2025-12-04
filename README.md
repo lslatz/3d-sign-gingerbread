@@ -1,23 +1,42 @@
 # 3D Holiday Sign - Gingerbread Project
 
-A FreeCAD Python script to create a 3D printable holiday sign with a "Happy Holidays" text piece.
+Python scripts to create a 3D printable holiday sign with a "Happy Holidays" text piece.
 
 ## Features
 
 - Creates a rectangular sign base: **8 inches x 6 inches x 1 inch**
 - Creates a separate "Happy Holidays" text piece for 3D printing
 - Exports both pieces as STL files for 3D printing
-- Saves a FreeCAD document (.FCStd) for further editing
 
-## Requirements
+## Usage Options
 
+### Option 1: Standalone Script (Recommended - No FreeCAD Required)
+
+The standalone script uses CadQuery to generate STL files directly without needing FreeCAD.
+
+**Requirements:**
+```bash
+pip install cadquery-ocp cadquery
+```
+
+**Run:**
+```bash
+python create_holiday_sign_standalone.py
+```
+
+This will generate:
+- `sign_base.stl` - The 8x6x1 inch sign base
+- `happy_holidays_text.stl` - The "Happy Holidays" text piece
+
+### Option 2: FreeCAD Script (Legacy)
+
+If you prefer using FreeCAD, you can still use the original script.
+
+**Requirements:**
 - [FreeCAD](https://www.freecad.org/) (version 0.19 or later recommended)
 - Python 3.x (included with FreeCAD)
 
-## Usage
-
-### Option 1: Run from FreeCAD GUI
-
+**Run from FreeCAD GUI:**
 1. Open FreeCAD
 2. Go to **View → Panels → Python Console**
 3. Run the following command:
@@ -25,31 +44,29 @@ A FreeCAD Python script to create a 3D printable holiday sign with a "Happy Holi
    exec(open("/path/to/create_holiday_sign.py").read())
    ```
 
-### Option 2: Run from Command Line
-
+**Run from Command Line:**
 ```bash
 freecad -c create_holiday_sign.py
 ```
 
 Or with the FreeCAD Python console:
-
 ```bash
 freecadcmd create_holiday_sign.py
 ```
 
 ## Output Files
 
-After running the script, you will get:
+After running either script, you will get:
 
 | File | Description |
 |------|-------------|
 | `sign_base.stl` | The 8x6x1 inch sign base for 3D printing |
 | `happy_holidays_text.stl` | The "Happy Holidays" text piece for 3D printing |
-| `holiday_sign.FCStd` | FreeCAD document with both objects |
+| `holiday_sign.FCStd` | FreeCAD document (only with FreeCAD script) |
 
 ## Customization
 
-You can modify the following constants in the script:
+You can modify the following constants in either script:
 
 ```python
 # Sign dimensions in inches
