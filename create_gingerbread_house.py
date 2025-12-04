@@ -75,6 +75,14 @@ TAB_DEPTH = 0.15       # inches (how deep tabs extend)
 TAB_HEIGHT = 0.3       # inches (height of each tab)
 TAB_TOLERANCE = 0.01   # inches (clearance for fitting)
 
+# Front wall feature counts (for validation)
+FRONT_WALL_DOOR_COUNT = 1
+FRONT_WALL_WINDOW_COUNT = 2
+
+# Visualization colors (RGB values 0-1)
+GINGERBREAD_BROWN_COLOR = [0.82, 0.55, 0.35]
+GINGERBREAD_EDGE_COLOR = [0.5, 0.3, 0.2]
+
 
 def create_arched_opening(width, height, depth, arch_height=None, plane="XZ"):
     """
@@ -491,8 +499,8 @@ def stl_to_image(stl_filepath, image_filepath, width=800, height=600):
     
     # Create a Poly3DCollection from the mesh triangles
     collection = Poly3DCollection(vectors, alpha=0.9, linewidths=0.1)
-    collection.set_facecolor([0.82, 0.55, 0.35])  # Gingerbread brown color
-    collection.set_edgecolor([0.5, 0.3, 0.2])  # Darker edge color
+    collection.set_facecolor(GINGERBREAD_BROWN_COLOR)
+    collection.set_edgecolor(GINGERBREAD_EDGE_COLOR)
     ax.add_collection3d(collection)
     
     # Get the bounds of the mesh
@@ -572,7 +580,8 @@ def validate_front_wall_features():
     - 1 door
     - 2 windows
     
-    This validation is based on the design parameters defined in this script.
+    This validation is based on the design parameters defined in this script
+    (FRONT_WALL_DOOR_COUNT and FRONT_WALL_WINDOW_COUNT constants).
     
     Returns:
         dict: Validation results with counts and pass/fail status
@@ -581,9 +590,10 @@ def validate_front_wall_features():
     # The front wall has:
     # - 1 arched door (centered)
     # - 2 arched windows (left and right)
+    # These counts are defined as constants at the module level
     
-    door_count = 1  # One door cutout in create_front_wall()
-    window_count = 2  # Two window cutouts in create_front_wall()
+    door_count = FRONT_WALL_DOOR_COUNT
+    window_count = FRONT_WALL_WINDOW_COUNT
     
     validation = {
         'door_count': door_count,
@@ -631,26 +641,29 @@ def main():
     roof_right = create_roof_panel()  # Same as left panel
     chimney = create_chimney()
     
+    # Define STL filenames for each piece
+    stl_filenames = {
+        'front_wall': "gingerbread_front_wall.stl",
+        'back_wall': "gingerbread_back_wall.stl",
+        'left_side': "gingerbread_left_side.stl",
+        'right_side': "gingerbread_right_side.stl",
+        'roof_left': "gingerbread_roof_left.stl",
+        'roof_right': "gingerbread_roof_right.stl",
+        'chimney': "gingerbread_chimney.stl",
+    }
+    
     # Export all pieces
     print("\nExporting STL files...")
-    stl_files = []
-    stl_files.append("gingerbread_front_wall.stl")
-    stl_files.append("gingerbread_back_wall.stl")
-    stl_files.append("gingerbread_left_side.stl")
-    stl_files.append("gingerbread_right_side.stl")
-    stl_files.append("gingerbread_roof_left.stl")
-    stl_files.append("gingerbread_roof_right.stl")
-    stl_files.append("gingerbread_chimney.stl")
-    
-    export_piece(front_wall, stl_files[0], script_dir)
-    export_piece(back_wall, stl_files[1], script_dir)
-    export_piece(left_side, stl_files[2], script_dir)
-    export_piece(right_side, stl_files[3], script_dir)
-    export_piece(roof_left, stl_files[4], script_dir)
-    export_piece(roof_right, stl_files[5], script_dir)
-    export_piece(chimney, stl_files[6], script_dir)
+    export_piece(front_wall, stl_filenames['front_wall'], script_dir)
+    export_piece(back_wall, stl_filenames['back_wall'], script_dir)
+    export_piece(left_side, stl_filenames['left_side'], script_dir)
+    export_piece(right_side, stl_filenames['right_side'], script_dir)
+    export_piece(roof_left, stl_filenames['roof_left'], script_dir)
+    export_piece(roof_right, stl_filenames['roof_right'], script_dir)
+    export_piece(chimney, stl_filenames['chimney'], script_dir)
     
     # Generate preview images from STL files
+    stl_files = list(stl_filenames.values())
     generate_stl_images(script_dir, stl_files)
     
     # Validate front wall features
