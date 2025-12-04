@@ -29,6 +29,7 @@ SIGN_DEPTH = 1.0   # inches
 # Text settings
 TEXT_HEIGHT = 0.5  # inches (extrusion depth for text)
 TEXT_FONT_SIZE = 1.0  # inches (approximate height of letters)
+TEXT_BACKING_WIDTH_PER_CHAR = 0.7  # inches per character for fallback text width
 
 # Font paths for different operating systems
 FONT_PATHS = [
@@ -100,7 +101,7 @@ def create_text_piece(text="Happy Holidays"):
     
     # Fallback: Create a simple placeholder rectangle
     # Calculate width based on text length (approximate)
-    width_mm = len(text) * 0.7 * font_size_mm
+    width_mm = len(text) * TEXT_BACKING_WIDTH_PER_CHAR * font_size_mm
     height_mm = font_size_mm * 1.5
     
     text_backing = cq.Workplane("XY").box(width_mm, height_mm, text_height_mm)
