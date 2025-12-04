@@ -14,6 +14,8 @@ Python scripts to create 3D printable holiday decorations including a holiday si
 - **4 Wall pieces**: Front (with door & windows), Back, Left Side, Right Side
 - **3 Roof pieces**: Left roof panel, Right roof panel, Chimney
 - Side walls feature peaked tops for the classic gingerbread house silhouette
+- **Stylish arched windows and door** with rounded tops for a Victorian look
+- **Interlocking tabs** for easy assembly without glue
 - All pieces export as individual STL files for easy 3D printing
 
 ## Usage Options
@@ -91,12 +93,12 @@ freecadcmd create_holiday_sign.py
 
 | File | Description |
 |------|-------------|
-| `gingerbread_front_wall.stl` | Front wall (4in x 3in) with door and windows |
-| `gingerbread_back_wall.stl` | Back wall (4in x 3in) with window |
-| `gingerbread_left_side.stl` | Left side (3in x 4.5in) with peaked top |
-| `gingerbread_right_side.stl` | Right side (3in x 4.5in) with peaked top |
-| `gingerbread_roof_left.stl` | Left roof panel with overhang |
-| `gingerbread_roof_right.stl` | Right roof panel with overhang |
+| `gingerbread_front_wall.stl` | Front wall (4in x 3in) with arched door and windows, interlocking tabs |
+| `gingerbread_back_wall.stl` | Back wall (4in x 3in) with arched window, interlocking tabs |
+| `gingerbread_left_side.stl` | Left side (3in x 4.5in) with peaked top, arched window, interlocking slots |
+| `gingerbread_right_side.stl` | Right side (3in x 4.5in) with peaked top, arched window, interlocking slots |
+| `gingerbread_roof_left.stl` | Left roof panel with overhang and tabs |
+| `gingerbread_roof_right.stl` | Right roof panel with overhang and tabs |
 | `gingerbread_chimney.stl` | Chimney (0.6in x 0.5in x 1in) |
 
 ### Holiday Sign
@@ -126,6 +128,15 @@ DOOR_WIDTH = 0.8
 DOOR_HEIGHT = 1.5
 WINDOW_WIDTH = 0.6
 WINDOW_HEIGHT = 0.6
+
+# Arch settings (for rounded tops)
+ARCH_SEGMENTS = 16     # number of segments for smooth arches
+
+# Tab dimensions for interlocking pieces
+TAB_WIDTH = 0.3        # width of each tab
+TAB_DEPTH = 0.15       # how deep tabs extend
+TAB_HEIGHT = 0.3       # height of each tab
+TAB_TOLERANCE = 0.01   # clearance for fitting
 ```
 
 ### Holiday Sign
@@ -150,11 +161,12 @@ TEXT_FONT_SIZE = 1.0  # inches (approximate height of letters)
 1. Print all wall pieces flat on the print bed
 2. Side walls should be printed with the peaked edge facing up
 3. Roof panels print flat - they will be angled during assembly
-4. Use a thin layer of glue to assemble the walls at 90-degree angles
-5. Attach roof panels to the peaked edges of the side walls
-6. Place the chimney on one of the roof panels
-7. Consider using brown/tan filament for an authentic gingerbread look
-8. Add white icing details with a 3D pen or printed decorations
+4. **Interlocking tabs**: Front/back wall tabs slide into side wall slots for easy assembly
+5. Tabs allow assembly without glue - adjust TAB_TOLERANCE if fit is too tight or loose
+6. Attach roof panels to the peaked edges of the side walls using the roof tabs
+7. Place the chimney on one of the roof panels
+8. Consider using brown/tan filament for an authentic gingerbread look
+9. Add white icing details with a 3D pen or printed decorations
 
 ### Holiday Sign
 
